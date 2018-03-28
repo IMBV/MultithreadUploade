@@ -14,10 +14,10 @@ public class UploaderManager {
 
     private static final int WHAT = 1;
 
-    private static final int CMD_NEW = 0;
-    private static final int CMD_PAUSE = 1;
-    private static final int CMD_RESUME = 2;
-    private static final int CMD_DELETE = 3;
+    public static final int CMD_NEW = 0;
+    public static final int CMD_PAUSE = 1;
+    public static final int CMD_RESUME = 2;
+    public static final int CMD_DELETE = 3;
 
     //定义一个线程安全的单例
     private static UploaderManager inst;
@@ -55,6 +55,9 @@ public class UploaderManager {
         return true;
     }
 
+    public void  doCommand(int cmd,int id){
+        sendMessage(cmd,id);
+    }
     private UploadCallback mUploadCallback = new UploadCallback(){
 
         @Override
@@ -98,6 +101,15 @@ public class UploaderManager {
                 switch (msg.arg1){
                     case CMD_NEW:
                         mUploaderThreadManager.addTask((UploaderTask) msg.obj);
+                        break;
+                    case CMD_PAUSE:
+                        int id = (int) msg.obj;
+                        UploaderTask task = mUploaderThreadManager.pauseTask(id);
+                        if(task != null){
+                            mUploadObserverManager.update(task);
+                        }
+                        break;
+                    case CMD_RESUME:
                         break;
                 }
             }

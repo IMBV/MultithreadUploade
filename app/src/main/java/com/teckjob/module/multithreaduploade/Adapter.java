@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.teckjob.module.multithreaduploade.thread.UploaderManager;
 import com.teckjob.module.multithreaduploade.thread.UploaderTask;
@@ -48,11 +49,28 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements
         holder.textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UploaderManager.getInstance(mContext).upload(new UploaderTask(position));
-                data.transferId = position;
-                Adapter.this.notifyDataSetChanged();
+                Integer status = (Integer) holder.textView.getTag();
+                if (status == null){
+                    down(data,position);
+                }else{
+                    if (status == UploaderTask.RUN_STATUS_CANCLE){
+                        down(data,position);
+                    }else if (status == UploaderTask.RUN_STATUS_RUNING || status == UploaderTask.RUN_STATUS_PENDING){
+                        UploaderManager.getInstance(mContext).doCommand(UploaderManager.CMD_PAUSE,position);
+                    }else if (status == UploaderTask.RUN_STATUS_PAUSE){
+
+                    }else if(status == UploaderTask.RUN_STATUS_SUCCESS){
+                        Toast.makeText(mContext,"下载完成",Toast.LENGTH_LONG).show();
+                    }
+                }
             }
         });
+    }
+
+    private void down(AdapterData data,int position) {
+        UploaderManager.getInstance(mContext).upload(new UploaderTask(position));
+        data.transferId = position;
+        Adapter.this.notifyDataSetChanged();
     }
 
     @Override
@@ -62,47 +80,62 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements
 
     @Override
     public void onUiStatusChange(UiChangeCache.UICacheInfo info, ViewHolder holder) {
-            updataUI(holder,holder.data,info);
+        if (holder.data != null && holder.data.transferId == info.transferId) {
+            updataUI(holder, holder.data, info);
+        }
     }
 
     private void updataUI(ViewHolder holder,AdapterData data,UiChangeCache.UICacheInfo info){
         int progressBarVis = View.GONE;
+        holder.textView.setTag(UploaderTask.RUN_STATUS_CANCLE);
         UiChangeCache.UICacheInfo centerStatusInfo = null;
-        if (data.transferId > 0){
+        if (data.transferId >= 0){
             if (info == null){
                 centerStatusInfo = uiChangeCache.getUploadCacheInfo(data.transferId,holder);
             }else {
                 centerStatusInfo = info;
             }
+            if (centerStatusInfo != null) {
+                if (centerStatusInfo.status == UploaderTask.RUN_STATUS_CANCLE) {
+                    data.transferId = -1;
+                }
+            }
+
         }
-        if (centerStatusInfo == null) {
+        if (data.transferId < 0){
             holder.textView.setText("下载");
-        } else {
-            if (centerStatusInfo.status == UploaderTask.RUN_STATUS_SUCCESS) {
-                holder.textView.setText("下载完成");
-            } else if (centerStatusInfo.status == UploaderTask.RUN_STATUS_RUNING) {
-                progressBarVis = View.VISIBLE;
-                int progress = (int) centerStatusInfo.progress;
-                holder.textView.setText("下载中...");
-                holder.progress.setProgress(progress);
-            } else if (centerStatusInfo.status == UploaderTask.RUN_STATUS_PAUSE) {
-                progressBarVis = View.VISIBLE;
-                int progress = (int) centerStatusInfo.progress;
-                holder.textView.setText("继续");
-                holder.progress.setProgress(progress);
-            } else if (centerStatusInfo.status == UploaderTask.RUN_STATUS_PENDING) {
-                progressBarVis = View.VISIBLE;
-                int progress = (int) centerStatusInfo.progress;
-                holder.textView.setText("等待");
-                holder.progress.setProgress(progress);
-            } else {
+        }else {
+            if (centerStatusInfo == null) {
                 holder.textView.setText("下载");
+            } else {
+                holder.textView.setTag(centerStatusInfo.status);
+                if (centerStatusInfo.status == UploaderTask.RUN_STATUS_SUCCESS) {
+                    holder.textView.setText("下载完成");
+                } else if (centerStatusInfo.status == UploaderTask.RUN_STATUS_RUNING) {
+                    progressBarVis = View.VISIBLE;
+                    int progress = (int) centerStatusInfo.progress;
+                    holder.textView.setText("下载中...");
+                    holder.progress.setProgress(progress);
+                } else if (centerStatusInfo.status == UploaderTask.RUN_STATUS_PAUSE) {
+                    progressBarVis = View.VISIBLE;
+                    int progress = (int) centerStatusInfo.progress;
+                    holder.textView.setText("继续");
+                    holder.progress.setProgress(progress);
+                } else if (centerStatusInfo.status == UploaderTask.RUN_STATUS_PENDING) {
+                    progressBarVis = View.VISIBLE;
+                    int progress = (int) centerStatusInfo.progress;
+                    holder.textView.setText("等待");
+                    holder.progress.setProgress(progress);
+                } else {
+                    holder.textView.setText("下载");
+                }
             }
         }
         if (progressBarVis != holder.progress.getVisibility()) {
             holder.progress.setVisibility(progressBarVis);
         }
     }
+
 
 
     static class ViewHolder extends RecyclerView.ViewHolder{

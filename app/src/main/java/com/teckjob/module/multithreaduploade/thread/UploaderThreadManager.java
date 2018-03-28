@@ -59,7 +59,7 @@ public class UploaderThreadManager {
     public UploaderTask pauseTask(long handle) {
         for (UploaderTask task : runList) {
             if (task.handle == handle) {
-                task.isCancelled = true;
+                task.status = UploaderTask.RUN_STATUS_PAUSE;
                 return task;
             }
         }
