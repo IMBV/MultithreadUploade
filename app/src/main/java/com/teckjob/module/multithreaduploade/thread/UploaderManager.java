@@ -84,6 +84,14 @@ public class UploaderManager {
             mUploadObserverManager.update(task);
             mUploaderThreadManager.finishTask(task);
         }
+
+        @Override
+        public void uploadEnd(UploaderTask task, int status) {
+            if (status == UploaderTask.RUN_STATUS_PAUSE){
+                mUploadObserverManager.update(task);
+                mUploaderThreadManager.finishTask(task);
+            }
+        }
     };
 
     private void sendMessage(int arg1, Object obj) {
@@ -105,11 +113,13 @@ public class UploaderManager {
                     case CMD_PAUSE:
                         int id = (int) msg.obj;
                         UploaderTask task = mUploaderThreadManager.pauseTask(id);
-                        if(task != null){
+                        if (task != null){
                             mUploadObserverManager.update(task);
                         }
                         break;
                     case CMD_RESUME:
+
+
                         break;
                 }
             }

@@ -18,7 +18,6 @@ public class UploadThread implements Runnable{
 
     protected Thread thread;
 
-
     public UploadThread(Context mContext, UploaderTask mUploaderTask, UploadCallback mUploadCallback) {
         this.mContext = mContext;
         this.mUploaderTask = mUploaderTask;
@@ -33,13 +32,48 @@ public class UploadThread implements Runnable{
         //这可以上传阿里或者七牛云，我这使用使用模拟上传
         try {
             while(percent<=100){
-                mUploadCallback.onProgress(mUploaderTask,percent);
                 percent+=1;
                 Thread.sleep(mRandom.nextInt(60)+30);
+                mUploadCallback.onProgress(mUploaderTask,percent);
+                try {
+                    checkPause();
+                } catch (StopRequest e) {
+                    notifyThroughDatabase(e.mFinalStatus);
+                    break;
+                }
             }
-            mUploadCallback.onSuccess(mUploaderTask);
+            if (percent == 100){
+                mUploadCallback.onSuccess(mUploaderTask);
+            }
         } catch (InterruptedException e) {
             mUploadCallback.onError(mUploaderTask,e.toString());
         }
     }
+
+    private void notifyThroughDatabase(int mFinalStatus) {
+        mUploadCallback.uploadEnd(mUploaderTask,mFinalStatus);
+    }
+
+    private void checkPause() throws  StopRequest{
+        synchronized (mUploaderTask) {
+            if (mUploaderTask.status == UploaderTask.RUN_STATUS_PAUSE) {
+                throw new StopRequest(UploaderTask.RUN_STATUS_PAUSE, "download paused by owner");
+            }
+        }
+    }
+
+    private class StopRequest extends Throwable {
+        public int mFinalStatus;
+
+        public StopRequest(int finalStatus, String message) {
+            super(message);
+            mFinalStatus = finalStatus;
+        }
+
+        public StopRequest(int finalStatus, String message, Throwable throwable) {
+            super(message, throwable);
+            mFinalStatus = finalStatus;
+        }
+    }
+
 }

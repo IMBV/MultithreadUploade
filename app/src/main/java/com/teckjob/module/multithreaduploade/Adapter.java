@@ -136,8 +136,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements
         }
     }
 
-
-
     static class ViewHolder extends RecyclerView.ViewHolder{
         private TextView textView;
         private ProgressBar progress;

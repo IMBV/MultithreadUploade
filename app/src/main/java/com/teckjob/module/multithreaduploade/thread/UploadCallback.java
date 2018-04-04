@@ -11,4 +11,6 @@ public interface UploadCallback {
 
     void onError(UploaderTask task,String hint);
 
+    void uploadEnd(UploaderTask task ,int status);
+
 }
