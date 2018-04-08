@@ -5,6 +5,9 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * Created by IMBV on 2018/3/23.
@@ -55,7 +58,7 @@ public class UploaderManager {
         return true;
     }
 
-    public void  doCommand(int cmd,int id){
+    public void  doCommand(int cmd,Object id){
         sendMessage(cmd,id);
     }
     private UploadCallback mUploadCallback = new UploadCallback(){
@@ -111,15 +114,15 @@ public class UploaderManager {
                         mUploaderThreadManager.addTask((UploaderTask) msg.obj);
                         break;
                     case CMD_PAUSE:
-                        int id = (int) msg.obj;
-                        UploaderTask task = mUploaderThreadManager.pauseTask(id);
-                        if (task != null){
-                            mUploadObserverManager.update(task);
+                        UploaderTask task = mUploaderThreadManager.pauseTask((int) msg.obj);
+                        if (task == null){
+                            HashMap map = new HashMap();
+                            map.put("status",UploaderTask.RUN_STATUS_PAUSE);
+                            mUploadObserverManager.update((int) msg.obj,map);
                         }
                         break;
                     case CMD_RESUME:
-
-
+                        mUploaderThreadManager.addTask((UploaderTask) msg.obj);
                         break;
                 }
             }

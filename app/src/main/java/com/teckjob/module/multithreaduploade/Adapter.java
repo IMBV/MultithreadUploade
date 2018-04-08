@@ -58,7 +58,9 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements
                     }else if (status == UploaderTask.RUN_STATUS_RUNING || status == UploaderTask.RUN_STATUS_PENDING){
                         UploaderManager.getInstance(mContext).doCommand(UploaderManager.CMD_PAUSE,position);
                     }else if (status == UploaderTask.RUN_STATUS_PAUSE){
-
+                        UploaderTask task = new UploaderTask(position);
+                        task.progress = data.progress;
+                        UploaderManager.getInstance(mContext).doCommand(UploaderManager.CMD_RESUME,task);
                     }else if(status == UploaderTask.RUN_STATUS_SUCCESS){
                         Toast.makeText(mContext,"下载完成",Toast.LENGTH_LONG).show();
                     }
@@ -99,9 +101,11 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements
                 if (centerStatusInfo.status == UploaderTask.RUN_STATUS_CANCLE) {
                     data.transferId = -1;
                 }
+                //这是不应该这样保存应该使用数据库进行的保存，每次重新开始的时候从库里获取最新的数据
+                holder.data.progress = centerStatusInfo.progress;
             }
-
         }
+
         if (data.transferId < 0){
             holder.textView.setText("下载");
         }else {

@@ -31,6 +31,7 @@ public class UploadThread implements Runnable{
     public void run() {
         //这可以上传阿里或者七牛云，我这使用使用模拟上传
         try {
+            percent = (int) mUploaderTask.progress;//这是的进度应该是上传的是文件已经上传的大小
             while(percent<=100){
                 percent+=1;
                 Thread.sleep(mRandom.nextInt(60)+30);
@@ -42,7 +43,7 @@ public class UploadThread implements Runnable{
                     break;
                 }
             }
-            if (percent == 100){
+            if (percent >= 100){
                 mUploadCallback.onSuccess(mUploaderTask);
             }
         } catch (InterruptedException e) {

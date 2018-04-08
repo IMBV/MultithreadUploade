@@ -6,6 +6,7 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.util.SparseArray;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -148,11 +149,24 @@ public class UploadObserverManager {
         mHandler.sendMessage(mHandler.obtainMessage(UPDATE_TASK, 0, 0, task));
     }
 
+    public void update(int id, HashMap<String,String> map) {
+        mHandler.sendMessage(mHandler.obtainMessage(UPDATE_TASK, id, 0, map));
+    }
+
     private void doUpdateTask(UploaderTask task) {
         ListenerItem cacheItem = getCacheItem((int)task.handle);
         if (cacheItem != null){
             cacheItem.mUploadTask = task;
             dispatchItemChanged(cacheItem, false);
+        }
+    }
+
+    private void doUpdateTask(int id,HashMap<String,Object> map) {
+        ListenerItem cacheItem = getCacheItem((int)id);
+        if (cacheItem != null){
+            if (cacheItem.mUploadTask.update(map)) {
+                dispatchItemChanged(cacheItem, false);
+            }
         }
     }
 
@@ -170,7 +184,11 @@ public class UploadObserverManager {
             } else if (msg.what == DELETE_TASK) {
                 doDeleteTask((int[]) msg.obj);
             } else if (msg.what == UPDATE_TASK) {
-                doUpdateTask((UploaderTask) msg.obj);
+                if (msg.obj instanceof UploaderTask) {
+                    doUpdateTask((UploaderTask) msg.obj);
+                }else {
+                    doUpdateTask(msg.arg1, (HashMap<String, Object>) msg.obj);
+                }
             }
             return true;
         }
