@@ -123,6 +123,7 @@ public class UploaderManager {
                         break;
                     case CMD_RESUME:
                         mUploaderThreadManager.addTask((UploaderTask) msg.obj);
+                        mUploadObserverManager.update((UploaderTask) msg.obj);
                         break;
                 }
             }

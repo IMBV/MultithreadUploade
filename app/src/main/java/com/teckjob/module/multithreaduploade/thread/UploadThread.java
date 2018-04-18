@@ -34,7 +34,7 @@ public class UploadThread implements Runnable{
             percent = (int) mUploaderTask.progress;//这是的进度应该是上传的是文件已经上传的大小
             while(percent<=100){
                 percent+=1;
-                Thread.sleep(mRandom.nextInt(60)+30);
+                Thread.sleep(mRandom.nextInt(60)+300);
                 mUploadCallback.onProgress(mUploaderTask,percent);
                 try {
                     checkPause();

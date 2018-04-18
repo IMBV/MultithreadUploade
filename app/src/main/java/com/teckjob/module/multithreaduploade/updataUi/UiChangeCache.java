@@ -87,6 +87,7 @@ public class UiChangeCache<UpdateInfo> {
                 || info.status == UploaderTask.RUN_STATUS_SUCCESS)) {
             return info;
         }
+
         if (info == null) {
             checkInitUploadInfo();
             info = new UICacheInfo(updateInfo);
